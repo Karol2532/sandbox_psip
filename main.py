@@ -1,7 +1,11 @@
 from dane import users_list
+from untils.my_functions import gui, add_user_to, remove_user_from,show_users_from
 
-for user in users_list:
-    print(f'Twój znajomy {user["nick"]} dodał {user["posts"]} postów')
+gui(users_list)
+
+
+
+
 
 
 
