@@ -6,5 +6,6 @@ users_list: list = [
 {"name":"Jakub","nick":"kremerciok","posts":2526},
 {"name":"Agata","nick":"rzygalo","posts":232146},
 {"name":"Ola","nick":"jaciub","posts":982146},
+{"name":"Ola","nick":"kierownik","posts":986},
 {"name":"Kinga","nick":"kowal","posts":46}
 ]
