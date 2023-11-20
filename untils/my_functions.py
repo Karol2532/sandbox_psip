@@ -38,32 +38,42 @@ def show_users_from(users_list: list)-> None:
     for user in users_list:
         print(f'Twój znajomy {user["name"]} dodał {user["posts"]} postów')
 
+def update_user(users_list: list[dict,dict]) -> None:
+    nick_of_user = input('Podaj nick użytkownika do modyfikacji: ')
+    for user in users_list:
+        if user['nick'] == nick_of_user:
+            print('taki ćwok istnieje')
+            user['name'] = input('podaj nowe imię: ')
+            user['nick'] = input('Podaj nową ksywę: ')
+            user['posts'] = int(input('podaj liczbę postów: '))
 
 def gui() -> None:
     while True:
-        print(f'Witaj na WATbooku \n'
+        print(f'\nWitaj na WATbooku \n'
               f'0: Zamknij serwis \n'
               f'1: Wyświetl użytkowników \n'
               f'2: Dodaj użytkownika \n'
               f'3: Usuń użytkownika \n'
               f'4: Edytuj użytkownika')
 
-        menu_option = input('Wybierz funkcję do wykonania')
-        print(f'Wybrano funkcję {menu_option}')
+        menu_option = int(input('\nWybierz funkcję do wykonania '))
+        print(f'Wybrano funkcję {menu_option}\n')
 
         match menu_option:
-            case '0':
+            case 0:
                 print('Zamykam serwis')
                 break
-            case '1':
+            case 1:
                 print('Wyświetlanie listy użytkowników')
                 show_users_from(users_list)
-            case '2':
+            case 2:
                 print('Dodawanie użytkownika')
                 add_user_to(users_list)
-            case '3':
+            case 3:
                 print('Usuwanie użytkownika')
                 remove_user_from(users_list)
-            case '4':
+            case 4:
                 print('Edytowanie użytkownika')
-                print('Jeszcze ni mom')
+                update_user(users_list)
+
+
