@@ -64,3 +64,4 @@ def get_map_of(users:list)->None:
 
 from dane import users_list
 get_map_of(users_list)
+

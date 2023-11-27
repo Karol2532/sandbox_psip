@@ -46,6 +46,7 @@ def update_user(users_list: list[dict,dict]) -> None:
     for user in users_list:
         if user['nick'] == nick_of_user:
             print('Znaleziono użytkownika')
+            user['city'] = input('Podaj nowe miasto: ')
             user['name'] = input('Podaj nowe imię: ')
             user['nick'] = input('Podaj nową nick: ')
             user['posts'] = int(input('Podaj liczbę postów: '))
@@ -68,7 +69,7 @@ def get_coordinate(city:str)-> list[float,float]:
 
 #zwrócić mapę z pinezką odnoszącą się do użytkownika podanego z klawiatury
 def get_ss_map_of(user:str)->None:
-    city = get_coordinate(user['city'])
+    city = get_coordinate(user["city"])
 
     map = folium.Map(
         location=city,
@@ -101,14 +102,16 @@ def get_map_of(users:list)->None:
         map.save('Mapka.html')
 
 
-def gui() -> None:
+def gui(users_list) -> None:
     while True:
         print(f'\nWitaj na WATbooku \n'
               f'0: Zamknij serwis \n'
               f'1: Wyświetl użytkowników \n'
               f'2: Dodaj użytkownika \n'
               f'3: Usuń użytkownika \n'
-              f'4: Edytuj użytkownika')
+              f'4: Edytuj użytkownika \n'
+              f'5: Lokalizacja pojedyńczego użytkownika \n'
+              f'6: Mapa wszystkich użytkowników')
 
         menu_option = int(input('\nWybierz funkcję do wykonania '))
         print(f'Wybrano funkcję {menu_option}\n')
@@ -129,5 +132,13 @@ def gui() -> None:
             case 4:
                 print('Edytowanie użytkownika')
                 update_user(users_list)
-
+            case 5:
+               print('Tworzę mapę z lokalizacją użytkownika')
+               user = input('Podaj nazwę użytkownika do zlokalizowania')
+               for item in users_list:
+                   if item["nick"] == user:
+                       get_ss_map_of(item)
+            case 6:
+                print('Tworzę mapę wszystkich użytkowników')
+                get_map_of(users_list)
 
