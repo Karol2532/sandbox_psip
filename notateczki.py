@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import requests
 import folium
 
+
 city = 'Olsztyn', 'Giżycko', 'Kolno'
 
 def get_coordinate(city:str)-> list[float,float]:
@@ -22,20 +23,44 @@ def get_coordinate(city:str)-> list[float,float]:
 
 #for item in city:
     #print(get_coordinate(item))
+#from .dane import users_list
+
+user = {"city":"Giżycko","name":"Karol","nick":"plutas","posts":731}
+
 
 #zwrócić mapę z pinezką odnoszącą się do użytkownika podanego z klawiatury
-#
-## RYSOWANIE MAPY
-city = get_coordinate(city='Zamość')
+def get_ss_map_of(user:str)->None:
+    city = get_coordinate(user['city'])
 
-map = folium.Map(
-    location=[52.3,21.0],
-    tiles="OpenStreetMap",
-    zoom_start=7)
-
-
-folium.Marker(
+    map = folium.Map(
         location=city,
-        popup='Geoinformatyka rządzi !').add_to(map)
+        tiles="OpenStreetMap",
+        zoom_start=15)
 
-map.save('Mapka.html')
+    folium.Marker(
+        location=city,
+        popup= f'Tu rządzi {user["name"]} z geoinformatyki 2023'
+    ).add_to(map)
+
+    map.save(f'Mapka{user["name"]}.html')
+
+
+
+#zwróci mapę z wszystkimi użytownikami z danej listy (znajomych)
+def get_map_of(users:list)->None:
+    map = folium.Map(
+        location=[52.3,21.0],
+        tiles="OpenStreetMap",
+        zoom_start=7)
+
+    for item in users:
+        folium.Marker(
+        location=get_coordinate(city=item["city"]),
+        popup= f'Użytkownik: {item["name"]} \n'
+        f' Liczba postów: {item["posts"]}'
+        ).add_to(map)
+
+        map.save('Mapka.html')
+
+from dane import users_list
+get_map_of(users_list)
