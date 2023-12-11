@@ -101,6 +101,10 @@ def get_map_of(users:list)->None:
 
         map.save('Mapka.html')
 
+def pogoda_z_(miasto: str):
+    url = f"https://danepubliczne.imgw.pl/api/data/synop/station/{miasto}"
+    return requests.get(url).json()
+
 
 def gui(users_list) -> None:
     while True:
