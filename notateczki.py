@@ -1,18 +1,12 @@
-import requests
-class User:
-    def __init__(self,miasto):
-        self.miasto = miasto
+import sqlalchemy
 
-    def pogoda_z_(self,miasto: str):
-        url = f"https://danepubliczne.imgw.pl/api/data/synop/station/{miasto}"
-        return requests.get(url).json()
-
-
-npc_1 = User(miasto='warszawa')
-npc_2 = User(miasto='zamosc')
-
-print(npc_1.miasto)
-print(npc_2.miasto)
-
-print(npc_1.pogoda_z_(npc_1.miasto))
-print(npc_2.pogoda_z_(npc_2.miasto))
+db_params = sqlalchemy.URL.create(
+    drivername='postgresql+psycopg2',
+    username='postgres',
+    password='123',
+    host='localhost',
+    database='postgres',
+    port=5432
+)
+engine = sqlalchemy.create_engine(db_params)
+connection = engine.connect()
