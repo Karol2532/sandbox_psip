@@ -32,7 +32,3 @@ class User(Base):
 
 
 Base.metadata.create_all(engine)
-
-session.flush()
-connection.close()
-engine.dispose()
