@@ -1,5 +1,4 @@
 import psycopg2
-from dane import users_list
 from bs4 import BeautifulSoup
 import requests
 import folium
@@ -13,6 +12,7 @@ db_params = psycopg2.connect(
 )
 
 cursor = db_params.cursor()
+
 
 def add_user_to() -> None:
     """
@@ -28,7 +28,8 @@ def add_user_to() -> None:
     cursor.execute(sql_query_1)
     db_params.commit()
 
-#add_user_to(users_list)
+
+# add_user_to(users_list)
 
 def remove_user_from() -> None:
     """
@@ -44,18 +45,19 @@ def remove_user_from() -> None:
     print(f'Znaleziono użytkowników:')
     print('0: Usuń wszystkich znalezionych użytkowników')
     for numerek, user_to_be_removed in enumerate(query_result):
-        print(f'{numerek+1}: {user_to_be_removed}')
+        print(f'{numerek + 1}: {user_to_be_removed}')
     numer = int(input(f'Wybierz użytkownika do usunięcia:'))
     if numer == 0:
         sql_query_2 = f"DELETE FROM public.watbook WHERE name ='{name}';"
         cursor.execute(sql_query_2)
         db_params.commit()
     else:
-        sql_query_2 = f"DELETE FROM public.watbook WHERE id='{query_result[numerek-1][0]}';"
+        sql_query_2 = f"DELETE FROM public.watbook WHERE id='{query_result[numerek - 1][0]}';"
         cursor.execute(sql_query_2)
         db_params.commit()
 
-def show_users_from()-> None:
+
+def show_users_from() -> None:
     sql_query_1 = f" SELECT * FROM public.watbook;"
     cursor.execute(sql_query_1)
     query_result = cursor.fetchall()
@@ -77,8 +79,7 @@ def update_user() -> None:
     db_params.commit()
 
 
-def get_coordinate(city:str)-> list[float,float]:
-
+def get_coordinate(city: str) -> list[float, float]:
     # pobranie strony internetowej
     adres_URL = f'https://pl.wikipedia.org/wiki/{city}'
 
@@ -86,20 +87,29 @@ def get_coordinate(city:str)-> list[float,float]:
     response_html = BeautifulSoup(response.text, 'html.parser')
 
     # pobranie współrzędnych z strony internetowej
-    response_html_latitude = response_html.select('.latitude')[1].text # . bo class
-    response_html_latitude = float(response_html_latitude.replace(',','.'))
-    response_html_longitude = response_html.select('.longitude')[1].text # . bo class
-    response_html_longitude = float(response_html_longitude.replace(',','.'))
+    response_html_latitude = response_html.select('.latitude')[1].text  # . bo class
+    response_html_latitude = float(response_html_latitude.replace(',', '.'))
+    response_html_longitude = response_html.select('.longitude')[1].text  # . bo class
+    response_html_longitude = float(response_html_longitude.replace(',', '.'))
 
     return [response_html_latitude, response_html_longitude]
 
-#zwrócić mapę z pinezką odnoszącą się do użytkownika podanego z klawiatury
-def get_ss_map_of()->None:
-    city = input('Podaj miejscowość użytkownika: ')
-    sql_query_1 = f"SELECT * FROM public.watbook WHERE city = '{city}';"
+
+# zwrócić mapę z pinezką odnoszącą się do użytkownika podanego z klawiatury
+def get_ss_map_of() -> None:
+    nick = input('Podaj nick użytkownika: ')
+    sql_query_1 = f"SELECT * FROM public.watbook WHERE nick = '{nick}';"
     cursor.execute(sql_query_1)
     query_result = cursor.fetchall()
-    city = get_coordinate(city)
+
+    if not query_result:
+        print(f'Brak użytkownika o nicku {nick}')
+        return
+
+    cityuser_out = query_result[0]  # oddaje liste w nawiasach, więc trzeba jeszcze raz wywołać
+    cityuser = cityuser_out[1]
+    city = get_coordinate(cityuser)
+
     map = folium.Map(
         location=city,
         tiles="OpenStreetMap",
@@ -107,17 +117,16 @@ def get_ss_map_of()->None:
     for user in query_result:
         folium.Marker(
             location=city,
-            popup= f'Tu rządzi {user[2]} z geoinformatyki 2023'
+            popup=f'Tu rządzi {user[2]} z geoinformatyki 2023'
         ).add_to(map)
 
         map.save(f'Mapka{user[2]}.html')
 
 
-
-#zwróci mapę z wszystkimi użytownikami z danej listy (znajomych)
-def get_map_of()->None:
+# zwróci mapę z wszystkimi użytownikami z danej listy (znajomych)
+def get_map_of() -> None:
     map = folium.Map(
-        location=[52.3,21.0], # miejsce wysrodkowania mapy
+        location=[52.3, 21.0],  # miejsce wysrodkowania mapy
         tiles="OpenStreetMap",
         zoom_start=7)
     sql_query_1 = f"SELECT * FROM public.watbook;"
@@ -126,12 +135,13 @@ def get_map_of()->None:
 
     for item in query_result:
         folium.Marker(
-        location=get_coordinate(city=item[1]),
-        popup= f'Użytkownik: {item[2]} \n'
-        f' Liczba postów: {item[4]}'
+            location=get_coordinate(city=item[1]),
+            popup=f'Użytkownik: {item[2]} \n'
+                  f' Liczba postów: {item[4]}'
         ).add_to(map)
 
         map.save('Mapka.html')
+
 
 def pogoda_z_(miasto: str):
     url = f"https://danepubliczne.imgw.pl/api/data/synop/station/{miasto}"
@@ -169,8 +179,8 @@ def gui() -> None:
                 print('Edytowanie użytkownika')
                 update_user()
             case 5:
-               print('Tworzę mapę z lokalizacją użytkownika')
-               get_ss_map_of()
+                print('Tworzę mapę z lokalizacją użytkownika')
+                get_ss_map_of()
 
             case 6:
                 print('Tworzę mapę wszystkich użytkowników')
@@ -184,9 +194,10 @@ class User:
         self.nick = nick
         self.posts = posts
 
-    def pogoda_z_(self,miasto: str):
+    def pogoda_z_(self, miasto: str):
         URL = f'https://danepubliczne.imgw.pl/api/data/synop/station/{miasto}'
         return requests.get(URL).json()
+
 
 npc_1 = User(city='gdansk', name='Karol', nick='Lachon', posts=52532)
 npc_2 = User(city='warszawa', name='Kacper', nick='szysza', posts=1231)
@@ -196,3 +207,14 @@ print(npc_2.city)
 
 print(npc_1.pogoda_z_(npc_1.city))
 print(npc_2.pogoda_z_(npc_2.city))
+
+
+
+# def dodaj_użytkownika(user:str): ##Dodawanie z listy do tabeli
+#     for nick in users_list:
+#         if user == nick['nick']:
+#             sql_query_1 = f"INSERT INTO public.watbook(city, name, nick, posts) VALUES ('{nick['city']}',  '{nick['name']}', '{nick['nick']}', '{nick['posts']}');"
+#             cursor.execute(sql_query_1)
+#             db_params.commit()
+#
+# dodaj_użytkownika(input('Podaj nick użytkownika do dodania z listy'))
