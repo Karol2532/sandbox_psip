@@ -1,55 +1,81 @@
+import psycopg2
 from dane import users_list
 from bs4 import BeautifulSoup
 import requests
 import folium
-def add_user_to(users_list: list) -> None:
+
+db_params = psycopg2.connect(
+    database='postgres',
+    user='postgres',
+    password='123',
+    host='localhost',
+    port=5433
+)
+
+cursor = db_params.cursor()
+
+def add_user_to() -> None:
     """
     add object to list
     :param users_list: list - user list
     :return: None
     """
-    name = input('podaj imię')
-    nick = input('podaj nick')
-    posts = input('podaj liczbę postów')
-    users_list.append({"name": name, "nick": nick, "posts": posts})
+    name = input('Podaj imię')
+    nick = input('Podaj nick')
+    posts = input('Podaj liczbę postów')
+    city = input('Podaj miejscowość')
+    sql_query_1 = f"INSERT INTO public.watbook(city, name, nick, posts) VALUES ('{city}', '{name}', '{nick}', '{posts}');"
+    cursor.execute(sql_query_1)
+    db_params.commit()
 
 #add_user_to(users_list)
 
-def remove_user_from(users_list: list) -> None:
+def remove_user_from() -> None:
     """
     remove object from list
     :param users_list: list - user list
     :return: None
     """
-    tmp_list = []
-    name = input('podaj imię użytkownika do usunięcia')
-    for user in users_list:
-        if user['name'] == name:
-            tmp_list.append(user)
+
+    name = input('Podaj imię użytkownika do usunięcia')
+    sql_query_1 = f"SELECT * FROM public.watbook WHERE name ='{name}';"
+    cursor.execute(sql_query_1)
+    query_result = cursor.fetchall()
     print(f'Znaleziono użytkowników:')
-    for numerek, user_to_be_removed in enumerate(tmp_list):
+    print('0: Usuń wszystkich znalezionych użytkowników')
+    for numerek, user_to_be_removed in enumerate(query_result):
         print(f'{numerek+1}: {user_to_be_removed}')
-    print('0: usuń wszystkich znalezionych użytkowników')
-    numer = int(input(f'wybierz użytkownika do usunięcia:'))
+    numer = int(input(f'Wybierz użytkownika do usunięcia:'))
     if numer == 0:
-        for user in tmp_list:
-            users_list.remove(user)
+        sql_query_2 = f"DELETE FROM public.watbook WHERE name ='{name}';"
+        cursor.execute(sql_query_2)
+        db_params.commit()
     else:
-        users_list.remove(tmp_list[numer - 1])
+        sql_query_2 = f"DELETE FROM public.watbook WHERE id='{query_result[numerek-1][0]}';"
+        cursor.execute(sql_query_2)
+        db_params.commit()
 
-def show_users_from(users_list: list)-> None:
-    for user in users_list:
-        print(f'Twój znajomy {user["name"]} dodał {user["posts"]} postów')
+def show_users_from()-> None:
+    sql_query_1 = f" SELECT * FROM public.watbook;"
+    cursor.execute(sql_query_1)
+    query_result = cursor.fetchall()
+    for row in query_result:
+        print(f'Twój znajomy {row[2]} dodał {row[4]} postów')
 
-def update_user(users_list: list[dict,dict]) -> None:
+
+def update_user() -> None:
     nick_of_user = input('Podaj nick użytkownika do modyfikacji: ')
-    for user in users_list:
-        if user['nick'] == nick_of_user:
-            print('Znaleziono użytkownika')
-            user['city'] = input('Podaj nowe miasto: ')
-            user['name'] = input('Podaj nowe imię: ')
-            user['nick'] = input('Podaj nową nick: ')
-            user['posts'] = int(input('Podaj liczbę postów: '))
+    sql_guery_1 = f"SELECT * FROM public.watbook WHERE nick= '{nick_of_user}';"
+    cursor.execute(sql_guery_1)
+    print('Znaleziono użytkownika')
+    name = input('Podaj nowe imię: ')
+    nick = input('Podaj nową nick: ')
+    posts = int(input('Podaj liczbę postów: '))
+    city = input('Podaj nowe miasto: ')
+    sql_guery_2 = f"UPDATE public.watbook SET city='{city}', name='{name}', nick='{nick}', posts='{posts}' WHERE nick='{nick_of_user}';"
+    cursor.execute(sql_guery_2)
+    db_params.commit()
+
 
 def get_coordinate(city:str)-> list[float,float]:
 
@@ -68,35 +94,41 @@ def get_coordinate(city:str)-> list[float,float]:
     return [response_html_latitude, response_html_longitude]
 
 #zwrócić mapę z pinezką odnoszącą się do użytkownika podanego z klawiatury
-def get_ss_map_of(user:str)->None:
-    city = get_coordinate(user["city"])
-
+def get_ss_map_of()->None:
+    city = input('Podaj miejscowość użytkownika: ')
+    sql_query_1 = f"SELECT * FROM public.watbook WHERE city = '{city}';"
+    cursor.execute(sql_query_1)
+    query_result = cursor.fetchall()
+    city = get_coordinate(city)
     map = folium.Map(
         location=city,
         tiles="OpenStreetMap",
         zoom_start=15)
+    for user in query_result:
+        folium.Marker(
+            location=city,
+            popup= f'Tu rządzi {user[2]} z geoinformatyki 2023'
+        ).add_to(map)
 
-    folium.Marker(
-        location=city,
-        popup= f'Tu rządzi {user["name"]} z geoinformatyki 2023'
-    ).add_to(map)
-
-    map.save(f'Mapka{user["name"]}.html')
+        map.save(f'Mapka{user[2]}.html')
 
 
 
 #zwróci mapę z wszystkimi użytownikami z danej listy (znajomych)
-def get_map_of(users:list)->None:
+def get_map_of()->None:
     map = folium.Map(
-        location=[52.3,21.0],
+        location=[52.3,21.0], # miejsce wysrodkowania mapy
         tiles="OpenStreetMap",
         zoom_start=7)
+    sql_query_1 = f"SELECT * FROM public.watbook;"
+    cursor.execute(sql_query_1)
+    query_result = cursor.fetchall()
 
-    for item in users:
+    for item in query_result:
         folium.Marker(
-        location=get_coordinate(city=item["city"]),
-        popup= f'Użytkownik: {item["name"]} \n'
-        f' Liczba postów: {item["posts"]}'
+        location=get_coordinate(city=item[1]),
+        popup= f'Użytkownik: {item[2]} \n'
+        f' Liczba postów: {item[4]}'
         ).add_to(map)
 
         map.save('Mapka.html')
@@ -106,7 +138,7 @@ def pogoda_z_(miasto: str):
     return requests.get(url).json()
 
 
-def gui(users_list) -> None:
+def gui() -> None:
     while True:
         print(f'\nWitaj na WATbooku \n'
               f'0: Zamknij serwis \n'
@@ -126,23 +158,41 @@ def gui(users_list) -> None:
                 break
             case 1:
                 print('Wyświetlanie listy użytkowników')
-                show_users_from(users_list)
+                show_users_from()
             case 2:
                 print('Dodawanie użytkownika')
-                add_user_to(users_list)
+                add_user_to()
             case 3:
                 print('Usuwanie użytkownika')
-                remove_user_from(users_list)
+                remove_user_from()
             case 4:
                 print('Edytowanie użytkownika')
-                update_user(users_list)
+                update_user()
             case 5:
                print('Tworzę mapę z lokalizacją użytkownika')
-               user = input('Podaj nazwę użytkownika do zlokalizowania')
-               for item in users_list:
-                   if item["nick"] == user:
-                       get_ss_map_of(item)
+               get_ss_map_of()
+
             case 6:
                 print('Tworzę mapę wszystkich użytkowników')
-                get_map_of(users_list)
+                get_map_of()
 
+
+class User:
+    def __init__(self, city, name, nick, posts):
+        self.city = city
+        self.name = name
+        self.nick = nick
+        self.posts = posts
+
+    def pogoda_z_(self,miasto: str):
+        URL = f'https://danepubliczne.imgw.pl/api/data/synop/station/{miasto}'
+        return requests.get(URL).json()
+
+npc_1 = User(city='gdansk', name='Karol', nick='Lachon', posts=52532)
+npc_2 = User(city='warszawa', name='Kacper', nick='szysza', posts=1231)
+
+print(npc_1.city)
+print(npc_2.city)
+
+print(npc_1.pogoda_z_(npc_1.city))
+print(npc_2.pogoda_z_(npc_2.city))
