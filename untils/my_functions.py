@@ -15,11 +15,7 @@ cursor = db_params.cursor()
 
 
 def add_user_to() -> None:
-    """
-    add object to list
-    :param users_list: list - user list
-    :return: None
-    """
+
     name = input('Podaj imię')
     nick = input('Podaj nick')
     posts = input('Podaj liczbę postów')
@@ -29,14 +25,9 @@ def add_user_to() -> None:
     db_params.commit()
 
 
-# add_user_to(users_list)
+
 
 def remove_user_from() -> None:
-    """
-    remove object from list
-    :param users_list: list - user list
-    :return: None
-    """
 
     name = input('Podaj imię użytkownika do usunięcia')
     sql_query_1 = f"SELECT * FROM public.watbook WHERE name ='{name}';"
@@ -199,14 +190,14 @@ class User:
         return requests.get(URL).json()
 
 
-npc_1 = User(city='gdansk', name='Karol', nick='Lachon', posts=52532)
-npc_2 = User(city='warszawa', name='Kacper', nick='szysza', posts=1231)
-
-print(npc_1.city)
-print(npc_2.city)
-
-print(npc_1.pogoda_z_(npc_1.city))
-print(npc_2.pogoda_z_(npc_2.city))
+# npc_1 = User(city='gdansk', name='Karol', nick='Lachon', posts=52532)
+# npc_2 = User(city='warszawa', name='Kacper', nick='szysza', posts=1231)
+#
+# print(npc_1.city)
+# print(npc_2.city)
+#
+# print(npc_1.pogoda_z_(npc_1.city))
+# print(npc_2.pogoda_z_(npc_2.city))
 
 
 
